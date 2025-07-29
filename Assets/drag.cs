@@ -20,22 +20,33 @@ public class drag : MonoBehaviour
 
         // https://codersdesiderata.com/2016/09/10/screen-view-to-world-coordinates/
         // https://antongerdelan.net/opengl/raycasting.html
+        // https://www.reddit.com/r/gamedev/comments/10izurv/screen_to_world_coordinates/
+        // https://learnopengl.com/Getting-started/Coordinate-Systems
 
-        Vector3 mousePos = Input.mousePosition;
-        mousePos.x = 2f * (mousePos.x / Screen.currentResolution.width) - 1f;
-        mousePos.y = 2f * (mousePos.y / Screen.currentResolution.height) - 1f;
-        Matrix4x4 pv = Camera.main.previousViewProjectionMatrix;
-        Vector3 transformed = pv.inverse * mousePos;
+        Vector3 screenSpace = Input.mousePosition;
+        Vector3 clipSpace = Vector3.zero;
+        // invert axis
+        clipSpace.x = -(2f * (screenSpace.x / Screen.currentResolution.width) - 1f);
+        clipSpace.y = -(2f * (screenSpace.y / Screen.currentResolution.height) - 1f);
+        // revert perspective division
+        clipSpace.z = -(1f * Camera.main.farClipPlane);
+        Matrix4x4 projection = Matrix4x4.Perspective(Camera.main.fieldOfView, Camera.main.aspect, Camera.main.nearClipPlane, Camera.main.farClipPlane);
+        Vector4 viewSpace = projection.inverse * new Vector4(clipSpace.x * clipSpace.z, clipSpace.y * clipSpace.z, clipSpace.z, clipSpace.z);
+        Matrix4x4 view = Camera.main.transform.worldToLocalMatrix;
+        // vector4.w = 1f
+        Vector4 worldSpace = view.inverse * new Vector4(viewSpace.x, viewSpace.y, viewSpace.z, 1f);
 
-        Debug.DrawLine(Camera.main.transform.position, Camera.main.transform.position + transformed);
+        Vector3 p = new Vector3(worldSpace.x, worldSpace.y, worldSpace.z);
+        Vector3 dir = (p - Camera.main.transform.position).normalized;
+        Debug.DrawLine(Camera.main.transform.position, new Vector3(worldSpace.x, worldSpace.y, worldSpace.z));
 
         if (Input.GetMouseButtonDown(0))
         {
             RaycastHit hit;
-            if (Physics.Raycast(Camera.main.transform.position, Camera.main.transform.forward, out hit))
+            if (Physics.Raycast(Camera.main.transform.position, dir, out hit, Camera.main.farClipPlane))
             {
                 Debug.Log(hit.collider.gameObject.name);
-                Debug.DrawLine(Camera.main.transform.position, hit.transform.position, Color.red, 2f);
+                Debug.DrawLine(Camera.main.transform.position, hit.point, Color.red, 2f);
             }
         }
     }
