@@ -539,7 +539,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1253259796}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -608,14 +608,14 @@ SpringJoint:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1253259796}
   serializedVersion: 3
-  m_ConnectedBody: {fileID: 1621683833}
+  m_ConnectedBody: {fileID: 0}
   m_ConnectedArticulationBody: {fileID: 0}
   m_Anchor: {x: 0, y: 0.5, z: 0}
   m_Axis: {x: 1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
   m_ConnectedAnchor: {x: 0, y: 0, z: 0}
-  m_Spring: 10
-  m_Damper: 0.2
+  m_Spring: 50
+  m_Damper: 5
   m_MinDistance: 0
   m_MaxDistance: 0
   m_Tolerance: 0.025
@@ -790,6 +790,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cba9e8b13978dc04abb712a5146b7e19, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  handObject: {fileID: 1253259803}
+  grabbingPointOffset: {x: 0, y: 0, z: 0}
+  targetObject: {fileID: 0}
 --- !u!4 &1923283109
 Transform:
   m_ObjectHideFlags: 0

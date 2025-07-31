@@ -1,9 +1,21 @@
 using UnityEngine;
+using UnityEngine.InputSystem.Editor;
 using UnityEngine.Rendering;
 
 public class drag : MonoBehaviour
 {
-    Vector3[] corners = new Vector3[4];
+    private Vector3[] corners = new Vector3[4];
+
+    private Vector3 localSpaceTarget = Vector3.zero;
+    private Vector3 worldSpaceTarget = Vector3.zero;
+
+    [SerializeField]
+    private SpringJoint handObject = null;
+    [SerializeField]
+    private Vector3 grabbingPointOffset = Vector3.zero;
+
+    [HideInInspector]
+    public Rigidbody targetObject = null;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -36,18 +48,59 @@ public class drag : MonoBehaviour
         // vector4.w = 1f
         Vector4 worldSpace = view.inverse * new Vector4(viewSpace.x, viewSpace.y, viewSpace.z, 1f);
 
-        Vector3 p = new Vector3(worldSpace.x, worldSpace.y, worldSpace.z);
+        Vector3 p = worldSpace;
         Vector3 dir = (p - Camera.main.transform.position).normalized;
-        Debug.DrawLine(Camera.main.transform.position, new Vector3(worldSpace.x, worldSpace.y, worldSpace.z));
+        Debug.DrawLine(Camera.main.transform.position, p);
 
         if (Input.GetMouseButtonDown(0))
         {
             RaycastHit hit;
-            if (Physics.Raycast(Camera.main.transform.position, dir, out hit, Camera.main.farClipPlane))
+            if (Physics.Raycast(Camera.main.transform.position, dir, out hit, Camera.main.farClipPlane) &&
+                hit.rigidbody)
             {
-                Debug.Log(hit.collider.gameObject.name);
                 Debug.DrawLine(Camera.main.transform.position, hit.point, Color.red, 2f);
+
+                localSpaceTarget = hit.transform.InverseTransformPoint(hit.point);
+                worldSpaceTarget = hit.transform.position + Vector3.Scale(localSpaceTarget, hit.transform.localScale);
+
+                handObject.connectedBody = hit.rigidbody;
+                handObject.anchor = localSpaceTarget;
+
+                targetObject = hit.rigidbody;
+
+                handObject.gameObject.transform.position = hit.transform.position + Vector3.up * 5f;
             }
+        }
+        if (Input.GetMouseButtonUp(0))
+        {
+            if (targetObject)
+            {
+                targetObject = null;
+                handObject.connectedBody = null;
+                handObject.anchor = Vector3.zero;
+
+                Debug.Log("releasing object");
+            }
+        }
+
+        if (targetObject)
+        {
+            Vector3 vecToTarget = worldSpaceTarget - Camera.main.transform.position;
+            Vector3 vecToFarClip = p - Camera.main.transform.position;
+
+            Debug.Log(vecToTarget.magnitude + ", " + vecToFarClip.magnitude);
+
+            float dot = Vector3.Dot(vecToFarClip, vecToTarget) / vecToFarClip.magnitude;
+
+            Debug.Log(dot);
+
+            Vector3 midPoint = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, dot));
+            midPoint += grabbingPointOffset;
+
+            // TODO : take hand rotation into account
+            // TODO : constraints for hand rotation
+
+            handObject.gameObject.transform.position = midPoint;
         }
     }
 
@@ -60,5 +113,7 @@ public class drag : MonoBehaviour
             Gizmos.color = new Color(c.r, c.g, i / 4f, 1f);
             Gizmos.DrawSphere(Camera.main.transform.rotation * corners[i] + Camera.main.transform.position, 1f);
         }
+
+        Gizmos.DrawSphere(worldSpaceTarget, 0.5f);
     }
 }
