@@ -2,6 +2,18 @@ using UnityEngine;
 using UnityEngine.InputSystem.Editor;
 using UnityEngine.Rendering;
 
+// TODO : compilation with ci/cd automation
+// TODO : deployment to webgl
+
+// TODO : physics
+// TODO : mesh
+// TODO : time prediction
+// TODO : vfx sand
+// TODO : counter
+// TODO :   ajouter un counter
+// TODO :       temps total passé
+// TODO :       nombre de lancé
+
 public class drag : MonoBehaviour
 {
     private Vector3[] corners = new Vector3[4];
